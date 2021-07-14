@@ -91,7 +91,7 @@
 
 .nav-item {
     font-family: 'Quicksand', 'Lucida Sans', Verdana, sans-serif;
-    padding: 0px 20px;
+    padding: 0 20px;
     font-size: 1.1em;
     position: relative;
 }
@@ -105,7 +105,7 @@
 }
 
 .nav-item .logo {
-    margin: -15px 0px;
+    margin: -15px 0;
     padding-bottom: 20px;
     font-size: 2em;
 }
@@ -120,7 +120,7 @@
 }
 
 .main-padding {
-    padding: 0px 5px;
+    padding: 0 5px;
 }
 
 .padding-top {
@@ -132,7 +132,7 @@
 }
 
 .no-margin {
-    margin: 0px;
+    margin: 0;
 }
 
 .grey-bck {
@@ -171,7 +171,7 @@
     position: absolute;
     background-color: #f1f1f1;
     overflow: auto;
-    box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 8px 16px 0 rgba(0, 0, 0, 0.2);
     right: 0;
     z-index: 1;
 }
@@ -238,7 +238,7 @@
 /* Element-specific styles */
 body {
     height: 100%;
-    margin: 0px;
+    margin: 0;
     font-family: 'Open Sans', 'Lucida Sans', Verdana, sans-serif;
     color: #0a0a0ab6;
 }
@@ -346,7 +346,7 @@ table.pending-requests-list tr:hover {
 }
 
 .manager-main-div1 {
-    margin-right: 0px;
+    margin-right: 0;
     font-size: 0.7em;
 }
 
@@ -370,7 +370,7 @@ table.pending-requests-list tr:hover {
     border: 2px solid #0a0a0ab6;
     padding: 10px 40px;
     border-radius: 20px;
-    margin: 50px 0px;
+    margin: 50px 0;
     width: 150px;
     margin: 40px auto;
     text-align: center;
@@ -419,7 +419,7 @@ table.pending-requests-list tr:hover {
     }
 
     .main-padding {
-        padding: 0px 40px;
+        padding: 0 40px;
     }
 
     .desktop-only {
@@ -451,7 +451,7 @@ table.pending-requests-list tr:hover {
 
     .nav-item {
         font-family: 'Quicksand', 'Lucida Sans', Verdana, sans-serif;
-        padding: 0px 20px;
+        padding: 0 20px;
         font-size: 1.1em;
         position: relative;
     }
@@ -469,9 +469,9 @@ table.pending-requests-list tr:hover {
     }
 
     .nav-item .logo {
-        margin: -15px 0px;
+        margin: -15px 0;
         font-size: 2em;
-        padding-bottom: 0px;
+        padding-bottom: 0;
     }
 
     /*------ Dashboard ------*/
@@ -513,7 +513,7 @@ table.pending-requests-list tr:hover {
         border: 2px solid #0a0a0ab6;
         padding: 10px 40px;
         border-radius: 20px;
-        margin: 50px 0px;
+        margin: 50px 0;
         display: inline;
     }
 
