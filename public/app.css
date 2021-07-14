@@ -327,6 +327,10 @@ footer {
     margin-left: 40%;
 }
 
+.punch-clock-arrow {
+    display: none;
+}
+
 /*-------- PTO form ---------*/
 .pto-form {
     padding: 20px 40px;
@@ -480,6 +484,10 @@ table.pending-requests-list tr:hover {
     }
     .timecard-filter input[type=button] {
         margin-left: 5px;
+    }
+
+    .punch-clock-arrow {
+        display: inline;
     }
 
     /* ------ Manager ------*/
