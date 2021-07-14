@@ -4,8 +4,6 @@
 
 // Main database model
 const db = require('../models/db-model');
-// Time logs model
-const timelog = require('../models/timelog-model');
 
 // For form sanitation
 const sanitizer = require('sanitize')();
@@ -41,7 +39,7 @@ function verifyLogin(req, res) {
                             res.redirect('/login');
                         } else {
                             console.log("Password verified!")
-                            req.session.userId = result.employee_id;
+                            req.session.userId = result.employee_id
                             req.session.userName = result.first_name
                             req.session.isManager = result.is_manager
                             res.redirect('/dashboard');
@@ -131,7 +129,6 @@ function createAccount(req, res) {
     var password = sanitizer.value(req.body.password, /(?=.{8,})/)
     var emp_email = sanitizer.value(req.body.emp_email, 'email');
     var id = sanitizer.value(req.body.id, 'int');
-    var first_name = sanitizer.value(req.body.first_name, 'str');
 
     // Check if any of the inputs are invalid
     if (password == null) {
@@ -173,8 +170,8 @@ function createAccount(req, res) {
                             } else {
                                 console.log("Successfully updated employee with userId");
                                 // Allow user to login by saving id to session
-                                req.session.userId = result[0].id;
-                                req.session.userName = first_name;
+                                req.session.userId = updateResult[0].id;
+                                req.session.userName = updateResult[0].first_name;
                                 res.render('dashboard', {title: "Dashboard", userId: req.session.userId, userName: req.session.userName, active: 'dashboard'});
                             }
                         })
@@ -195,7 +192,7 @@ function addUserId(result, emp_id, callback) {
         UPDATE employee
         SET user_id = ${result[0].id}
         WHERE id = ${emp_id}
-        RETURNING id`;
+        RETURNING id, first_name`;
     console.log("Now executing SQL: " + sql);
     db.queryDB(sql, (err, res) => {
         if (err || res == null || res.length == 0) {

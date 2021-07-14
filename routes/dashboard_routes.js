@@ -30,7 +30,7 @@ router.get('/punch-clock', (req, res) => {
         res.render('login', param);
     } else {
         // if logged in, go to dashboard 
-        res.render('punch-clock', { title: "Punch Clock", active: 'punch-clock', isManager: req.session.isManager});
+        res.render('punch-clock', { title: "Punch Clock", active: 'punch-clock', isManager: req.session.isManager, userName: req.session.userName});
     }
 })
 
