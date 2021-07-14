@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+    <%- include('./partials/head.ejs') %>
+
+<body>
+    <!-- Nav -->
+    <%- include('./partials/nav.ejs') %>
+    <!-- End of nav -->
+
+    <div class="content-container">
+        <main class="main-padding center-align">
+            <div class="padding">
+                <h2 id="time"></h2>
+                <p id="date"></p>
+            </div>
+            <h2>Hello, <%- locals.first_name %>!</h2>
+            <% if (locals.message) { %>
+                <p class="message">
+                    <%- locals.message %>
+                </p>
+            <% } %>
+            <p class="log-status"></p>
+            <p class="last-log"></p>
+            <form id="punch-form">
+                <!-- <input class="type" type="hidden" name="type" value=""> -->
+                <input class="userId" type="hidden" name="userId" value="<%-locals.userId %>">
+                <input class="btn btn-primary punch-btn" type="submit" onclick="submitTimeLog()" value="PUNCH" style="width: 250px;">
+            </form>
+        </main>
+
+    </div>
+
+    <!-- Footer -->
+    <%- include('./partials/footer.ejs') %>
+    <!-- End of footer -->
+    <script src="/js/drop_down.js"></script>
+    <script>
+        function displayDateTime() {
+            var today = new Date();
+            var dd = addZero(today.getDate());
+            var mm = addZero(today.getMonth()+1);
+            var yyyy = today.getFullYear();
+            var hh = addZero(today.getHours());
+            var min = addZero(today.getMinutes());
+
+            const dateDisplay = document.querySelector('#date');
+            const timeDisplay = document.querySelector('#time');
+            dateDisplay.innerHTML = `${mm}/${dd}/${yyyy}`;
+            timeDisplay.innerHTML = `${hh}:${min}`
+        }
+
+        function addZero(i) {
+            if (i < 10) {
+                i = "0" + i;
+            }
+            return i;
+        }
+
+        displayDateTime();
+        setInterval(function() {
+            displayDateTime();
+        }, 1000);
+
+        window.onload = () => {
+            document.querySelector('.punch-btn').style.visibility = 'hidden';
+            checkLogStatus();
+        }
+
+        function checkLogStatus() {
+            const logStatusSpan = document.querySelector('.log-status');
+            logStatusSpan.innerHTML = '<p>Checking status...</p>'
+            let userId = '<%-locals.userId %>'
+            fetch(`/punch-clock/last-log/${userId}`)
+                .then((response) => response.json())
+                .then(result => {
+                    document.querySelector('.punch-btn').style.visibility = 'visible';
+                    // if no logs for today yet
+                    if (result.length == 0) {
+                        logStatusSpan.innerHTML = `<p>You haven't clocked in today.</p>`;
+                        document.querySelector('.punch-btn').value = "PUNCH IN";
+                    } else {
+                        console.log(result);
+                        if (result[0].log_out == null) {
+                            logStatusSpan.innerHTML = `<p>You are PUNCHED IN. <br> You last clocked in at: ${result[0].log_in.substring(0,5)} today.</p>`;
+                            document.querySelector('.punch-btn').value = "PUNCH OUT";
+                        } else {
+                            logStatusSpan.innerHTML = `<p>You are PUNCHED OUT. <br> You last clocked out at: ${result[0].log_out.substring(0,5)} today.</p>`;
+                            document.querySelector('.punch-btn').value = "PUNCH OUT AGAIN";
+                        }
+                    }
+                })
+                .catch((err) => {
+                     console.log("Error checking for existing logs: ", err);
+                });
+        }
+
+        function submitTimeLog() {
+            fetch(`/punch-clock/submit`, {
+                        method: 'POST',
+                        headers: {
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json'
+                        },
+                        // pass POST params
+                        body: JSON.stringify({
+                            userId: document.querySelector('.userId').value
+                        })
+                    })
+                .then((response) => {
+                    if (!response.ok) throw new Error(response.status);
+                    else return response.json();
+                })
+                .then((result) => {
+                    if (!result) {
+                        message.innerHTML = `Sorry! There was an error saving your time log. :( Please try again later.`;
+                    } else {
+                        checkLogStatus();
+                    }
+                })
+                .catch((err) => {
+                     console.log("Error submitting time log: ", err);
+                });
+        }
+
+
+    </script>
+</body>
+</html>

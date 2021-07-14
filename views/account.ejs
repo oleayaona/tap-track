@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+    <%- include('./partials/head.ejs') %>
+
+<body>
+    <!-- Nav -->
+    <%- include('./partials/nav.ejs') %>
+    <!-- End of nav -->
+
+    <div class="content-container">
+        <main class="main-padding center-align">
+            <div class="grid-half">
+                <div class="border">
+                    <h1>Pending Requests</h1>
+                    <table class="requests-list">
+    
+                    </table>
+                </div>
+                <div class="border">
+                    <div class="details-content">
+                        <h1>Request Details</h1>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+    </div>
+
+    <!-- Footer -->
+    <%- include('./partials/footer.ejs') %>
+    <!-- End of footer -->
+    <script src="/js/drop_down.js"></script>
+    <script>
+        let logs = [];
+        window.onload = () => {
+            let userId = '<%-locals.userId %>'
+            getRequests(userId);
+        }
+
+        function getRequests(userId) {
+            const list = document.querySelector('.requests-list');
+            list.innerHTML = '<p>Retrieving PTO requests...<p>'
+            fetch(`/get-pto-requests/${userId}`)
+                .then((response) => response.json())
+                .then(result => {
+                    logs = result;
+                    if (result.length == 0) {
+                            list.innerHTML = "<p>No pending requests to display.</p>"
+                        } else {
+                            list.innerHTML = "";
+                            for (var i = 0; i < result.length; i++) {
+                                var request = document.createElement('tr');
+                                // Add data attribute to identify each li
+                                request.setAttribute("id", result[i].id);
+
+                                let status = result[i].is_pending ? "Pending" : "Approved"
+                                
+                                request.innerHTML = `
+                                <div>
+                                <h4>${result[i].emp_name}</h4>
+                                <p>${result[i].req_type_name} | ${result[i].start_date.substring(0, 10)} - ${result[i].end_date.substring(0, 10)}</p>
+                                </div>
+                                `;
+
+                                list.appendChild(request);
+                                
+                            };
+                    }
+                })
+        }
+    </script>
+</body>
+</html>

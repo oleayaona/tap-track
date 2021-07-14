@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+    <%- include('./partials/head.ejs') %>
+
+<body>
+    <%- include('./partials/nav.ejs') %>
+
+    <div class="content-container">
+        <main class="main-padding">
+            <div class="border padding grey-bck flex">
+                <p class="log-status"></p>
+                <a href="/punch-clock" class="btn btn-primary"><p>PUNCH CLOCK <span class="desktop-only">&#10148;</span></p></a>
+            </div>
+            <div>
+                <div class="timecard padding-top">
+                    <h2>Time Card Report</h2>
+                    <form class="timecard-filter">
+                        <div>
+                            <label for="start-date">Start date: </label>
+                            <input type="date" id="start-date-input" name="start-date" required>
+                        </div>
+                        <div style="margin-left: 5px;">
+                            <label for="end-date">End date: </label>
+                            <input type="date" id="end-date-input" name="end-date" required>
+                        </div>
+                        <input type="button" class="btn btn-primary submit-btn" onclick="validateDates()" value="Filter"><br>
+                        <p class="error-message declined"></p>
+                    </form>
+                </div>
+                <div class="scrollable-table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Day</th>
+                                <th>Hours</th>
+                                <th>In</th>
+                                <th>Out</th>
+                            </tr>
+                        </thead>
+                        <tbody class="logs-list">
+                        </tbody>
+                    </table>
+                    <p class="message"></p>
+                </div>
+            </div>
+        </main>
+
+    </div>
+
+    <!-- Footer -->
+    <%- include('./partials/footer.ejs') %>
+    <script src="/js/drop_down.js"></script>
+    <script>
+        window.onload = () => {
+            let userId = '<%-locals.userId %>'
+            checkLastLog(userId);
+            getTimeLogs(userId);
+            validateDates();
+        }
+
+        function checkLastLog(userId) {
+            const logStatusSpan = document.querySelector('.log-status');
+            logStatusSpan.innerHTML = 'Checking time logs...'
+            fetch(`/punch-clock/last-log/${userId}`)
+                .then((response) => response.json())
+                .then(result => {
+                    if (result.length == 0) {
+                        logStatusSpan.innerHTML = `<h3 class="no-margin">You haven't clocked in today.</h3>`
+                    } else {
+                        if (result[0].log_out == null ) {
+                            logStatusSpan.innerHTML = '<h3 class="no-margin">You are currently PUNCHED IN.</h3>'
+                        } else {
+                            logStatusSpan.innerHTML = '<h3 class="no-margin">You are currently PUNCHED OUT.</h3>'
+                        }
+                        
+                    }
+                })
+                .catch((err) => {
+                    console.log("Error checking for existing log")
+                })
+        }
+
+        function getTimeLogs(userId) {
+            const list = document.querySelector('.logs-list');
+            const message = document.querySelector('.message');
+            message.innerHTML = '<p class="center-align">Retrieving time logs...<p>'
+            fetch(`/get-logs/${userId}`)
+                .then((response) => response.json())
+                .then(result => {
+                    message.innerHTML = ''
+                    if (result.length == 0) {
+                        list.innerHTML = "<p>No time logs to display.</p>"
+                    } else {
+                        list.innerHTML = "";
+                        populateList(result);
+                    }
+                    })
+                }
+            
+        function filterLogs() {
+            const start = document.querySelector('#start-date-input').value;
+            const end = document.querySelector('#end-date-input').value;
+            let userId = '<%-locals.userId %>';
+            fetch(`/filter-logs/${userId}/${start}/${end}`)
+                .then((response) => {
+                    if (!response.ok) throw new Error(response.status);
+                    else return response.json();
+                })
+                .then(result => {
+                    populateList(result);
+                }).catch((err) => {
+                    console.log("Error! Couldn't fetch filtered logs ", err);
+                });
+        }
+
+        function populateList(result) {
+            const list = document.querySelector('.logs-list');
+            list.innerHTML = '';
+            for (var i = 0; i < result.length; i++) {
+                var log = document.createElement('tr');
+
+                // Format date
+                var date = new Date(result[i].date_created);
+                var weekday = new Array(7);
+                weekday[0] = "Sunday";
+                weekday[1] = "Monday";
+                weekday[2] = "Tuesday";
+                weekday[3] = "Wednesday";
+                weekday[4] = "Thursday";
+                weekday[5] = "Friday";
+                weekday[6] = "Saturday";
+                var day = weekday[date.getDay()];
+
+                let log_out;
+                if (!result[i].log_out) {
+                    log_out = "-";
+                } else {
+                    log_out = result[i].log_out;
+                }
+
+                let hours;
+                if (result[i].hours > 8) {
+                    hours = 8;
+                } else if (result[i].hours == null) {
+                    hours = "-";
+                } else {
+                    hours = result[i].hours;
+                }
+
+                // Insert HTML
+                log.innerHTML = `
+                <td>${result[i].date_created}</td>
+                <td>${day}</td>
+                <td>${hours}</td>
+                <td>${result[i].log_in.substring(0,5)}</td>
+                <td>${log_out.substring(0,5)}</td>
+                `;
+                
+                list.appendChild(log);
+            };
+        }
+
+        function validateDates() {
+            const btn = document.querySelector('.submit-btn')
+            const start_date = document.getElementById('start-date-input')
+            const end_date = document.getElementById('end-date-input')
+            const note = document.querySelector('.error-message')
+            btn.addEventListener('click', (event) => {
+                let today = new Date();
+                if (start_date.value == '' || end_date.value == '') {
+                    note.textContent = `Please fill in both fields.`;
+                } else if (start_date.value > end_date.value) {
+                    note.textContent = `The start date can't be later than the end date.`;
+                } else {
+                    note.textContent = '';
+                    filterLogs();
+                }
+            })
+        }
+    </script>
+</body>
+</html>

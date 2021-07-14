@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+    <%- include('./partials/head.ejs') %>
+
+<body>
+    <!-- Nav -->
+    <%- include('./partials/nav.ejs') %>
+    <!-- End of nav -->
+
+    <div class="content-container">
+        <main class="main-padding center-align">
+            <h2>Add new PTO Request</h2>
+            <% if (locals.success) { %>
+                <div>
+                    <img src="/images/blue-check.png" alt="blue check mark" style="width: 50px">
+                    <p class="message">
+                        <%- locals.message %>
+                    </p>
+                </div>
+                <a href="/pto-requests">&#8592; Back to PTO Requests</a>
+            <% } %>
+            <form class="pto-form center-panel border" action="/pto-requests/submit-pto" method="POST">
+                <div class="flex">
+                    <div>
+                        <label for="start_date">Start date: </label>
+                        <input type="date" name="start_date" id="start_date" required>
+                    </div>
+                    <div>
+                        <label for="end_date">End date: </label>
+                        <input type="date" name="end_date" id="end_date" required>
+                    </div>
+                </div>
+                <p class="error-message declined"></p>
+                <select name="duration" id="duration" required>
+                    <option value="8" selected>Whole Day</option>
+                    <option value="4">Half Day</option>
+                </select>
+                <select name="type" id="type" required>
+                    <option value="1" selected>Vacation</option>
+                    <option value="2">Sick</option>
+                    <option value="3">Emergency</option>
+                </select>
+                <input type="hidden" name="emp_id" value="<%-locals.userId %>">
+                <input class="btn btn-primary" id="submit-btn" type="submit" value="SUBMIT">
+            </form>
+        </main>
+
+    </div>
+
+    <!-- Footer -->
+    <%- include('./partials/footer.ejs') %>
+    <!-- End of footer -->
+    <script src="/js/drop_down.js"></script>
+    <script>
+        validateDates();
+        
+        function validateDates() {
+            const btn = document.querySelector('#submit-btn')
+            const start_date = document.getElementById('start_date')
+            const end_date = document.getElementById('end_date')
+            const note = document.querySelector('.error-message')
+            const form = document.querySelector('.pto-form')
+            btn.addEventListener('click', (event) => {
+                event.preventDefault();
+
+                let today = new Date();
+                if (start_date.value == '' || end_date.value == '') {
+                    note.textContent = `Please fill in all fields.`;
+                } else if (start_date.value > today || end_date.value > today ) {
+                    note.textContent = `The start/end date can't be later than today.`;
+                } else if (start_date.value > end_date.value) {
+                    note.textContent = `The start date can't be later than the end date.`;
+                } else {
+                    note.textContent = '';
+                    form.submit();
+                }
+            })
+        }
+    </script>
+</body>
+</html>

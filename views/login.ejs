@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+    <%- include('./partials/head.ejs') %>
+
+<body class="background">
+    <div class="content-container">
+        <form action="home/login" class="login-form box center-panel column shadow" method="POST">
+            <div>
+                <a href="/home"><h1 class="logo center-align">Tt</h1></a>
+                <p class="center-align">TAP TRACK</p>
+            </div>
+            <h1 class="center-align">Log In</h1>
+            <% if (locals.message) { %>
+                <p class="message center-align declined">
+                    <%- locals.message %>
+                </p>
+            <% } %>
+            <div>
+                <label for="email">Email</label>
+                <input class="full-width" type="email" name="email" id="email" placeholder="Email" required>
+            </div>
+            <div>
+                <label for="password">Password</label>
+                <input class="full-width" type="password" name="password" id="password" placeholder="Password" required>
+            </div>
+            <input type="submit" class="login-btn btn-highlight" value="LOG IN">
+            <p class="center-align">No account? <a href="home/create-account">CREATE ACCOUNT</a></p>
+        </form>
+    </div>
+
+
+    <!-- Footer -->
+    <%- include('./partials/footer.ejs') %>
+    <!-- End of footer -->
+
+    <script src="/reload/reload.js"></script>
+</body>
+</html>

@@ -1,0 +1,48 @@
+<nav>
+    <ul class="nav-list"> 
+      <li class="nav-item"><a href="/home"><h1 class="logo center-align">Tt</h1></a></li>
+      <% if (locals.active == 'dashboard') { %>
+        <li class="nav-item active">
+      <% } else { %>
+        <li class="nav-item">
+      <% } %>
+        <a href="/dashboard">Dashboard</a>
+      </li>
+
+      <% if (locals.active == 'punch-clock') { %>
+        <li class="nav-item active">
+      <% } else { %>
+        <li class="nav-item">
+      <% } %>
+        <a href="/punch-clock">Punch Clock</a>
+      </li>
+
+      <% if (locals.active == 'pto-requests') { %>
+        <li class="nav-item active">
+      <% } else { %>
+        <li class="nav-item">
+      <% } %>
+        <a href="/pto-requests">PTO Requests</a>
+      </li>
+
+      <% if (locals.isManager) { %>
+
+        <% if (locals.active == 'manager') { %>
+          <li class="nav-item active">
+        <% } else { %>
+          <li class="nav-item">
+        <% } %>
+          <a href="/manager">Manager Tab</a>
+        </li>
+      <% } %>  
+      <li class="mobile-only"><a href="/account/logout">Logout</a></li>
+    </ul>
+    <div class="desktop-only">
+        <div class="dropdown">
+            <img onclick="dropDown()" class="dropbtn" src="/images/user-icon.png" alt="" style="width: 40px; padding: 10px;">
+            <div id="dropDownMenu" class="dropdown-content">
+              <a href="/account/logout">Sign out</a>
+            </div>
+          </div>
+    </div>
+</nav>

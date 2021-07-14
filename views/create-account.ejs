@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<%- include('./partials/head.ejs') %>
+
+<body class="background">
+    <div class="content-container ">
+        <form action="/home/create-account/submit" class="login-form box center-panel column shadow" method="POST">
+            <a href="/home"><h1 class="logo center-align">Tt</h1></a>
+            <h1 class="center-align">Create Account</h1>
+            <% if (locals.message) { %>
+            <p class="message">
+                <%- locals.message %>
+            </p>
+            <% } %>
+            <p>Please provide your company email and ID.</p>
+            <input class="full-width" type="email" name="emp_email" id="emp_email" placeholder="Work Email" required>
+            <input class="full-width" type="text" name="id" id="id" oninput="numberOnly('id')" placeholder="Employee ID" required>
+            <div id="password_field"></div>
+            <p id="note"></p>
+            <input class="btn-highlight login-btn" type="button" value="Verify" id="verify-btn" onclick="verify()" style="margin-left: 22%;"><br>
+            <p class="center-align" style="font-size: 0.8em;"><a href="/login">&#8592; Back to LOGIN</a></p>
+        </form>
+    </div>
+
+
+    <!-- Footer -->
+    <%- include('./partials/footer.ejs') %>
+
+    <script>
+        const btn = document.querySelector("#verify-btn");
+        const emailInput = document.querySelector("#emp_email");
+        const idInput = document.querySelector("#id");
+        const note = document.querySelector("#note");
+
+        function verify() {
+            // if fields are not empty
+            if (emailInput.value != '' && idInput.value != '') {
+                btn.value = "Verifying email and ID...";
+                fetch('/home/create-account/verify', {
+                        method: 'POST',
+                        headers: {
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json'
+                        },
+                        // pass POST params
+                        body: JSON.stringify({
+                            emp_email: emailInput.value,
+                            id: idInput.value,
+                        })
+                    })
+                    .then((response) => {
+                        if (!response.ok) throw new Error(response.status);
+                        else return response.json();
+                    })
+                    .then(result => {
+                        console.log("Result from API" )
+                        console.log(result);
+                        // If verification was successful
+                        if (result.success) {
+                            // Prompt for password
+                            getPassword(result.data[0]);
+                        } else {
+                            note.innerHTML = "Invalid email or ID. Please check your credentials and try again.";
+                            btn.value = "Verify";
+                        }
+                    }).catch((err) => {
+                        console.log("Error! Verification response not valid ", err);
+                        note.innerHTML = "Server error :( Please try again later.";
+                        btn.value = "Verify";
+                    });
+            } else {
+                note.innerHTML = "Please fill in all the fields";
+            };
+        }
+
+        function getPassword(userData) {
+            console.log("Trying to get password...");
+            console.log(userData);
+            // If no user ID, that means new user
+            if (userData.user_id == null) {
+                const passwordField = document.querySelector("#password_field");
+                passwordField.innerHTML = `
+                                <p id="password-note">Please enter a password</p>
+                                <input class="full-width" type="password" name="password" id="password" placeholder="Password" pattern=".{8,}" oninvalid="validatePassword()" required>
+                                <input class="btn-highlight login-btn" type="submit" name="submit" id="create-account-btn" value="CREATE ACCOUNT" style="margin-left: 22%;">
+                            `;
+                // Hide VERIFY button
+                btn.style.visibility = "hidden";
+                document.querySelector("#note").style.visibility = "hidden";
+                // Make inputs not editable
+                emailInput.setAttribute("readonly", true);
+                idInput.setAttribute("readonly", true);
+            } else {
+                note.innerHTML = "Email already has an account. Please <a href='/' style='text-decoration: underline;'>login</a> instead.";
+                note.style.color = "red";
+                btn.value = "Verify";
+            }
+        }
+
+        function validatePassword() {
+            const note = document.querySelector('#password-note');
+            note.innerHTML = "Passwords must be at least 8 characters.";
+        }
+
+        function getDayName(dateStr, locale) {
+            var date = new Date(dateStr);
+            return date.toLocaleDateString(locale, {
+                weekday: 'long'
+            });
+        }
+
+        // Number only input
+        function numberOnly(id) {
+            var input = document.getElementById(id).value.replace(/\D/g, '');
+            document.getElementById(id).value = input;
+        }
+    </script>
+</body>
+
+</html>

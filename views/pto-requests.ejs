@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+    <%- include('./partials/head.ejs') %>
+
+<body>
+    <!-- Nav -->
+    <%- include('./partials/nav.ejs') %>
+    <!-- End of nav -->
+
+    <div class="content-container">
+        <main class="main-padding center-align">
+            <div class="flex">
+                <h2 style="margin: 0px">Current PTO Requests</h2>
+                <a class="btn btn-primary" href="/pto-requests/add-pto">+ Add PTO</a>
+            </div>
+            <div class="scrollable-table-container margin-top">
+                <table class="requests-list">
+
+                </table>
+            </div>
+        </main>
+
+    </div>
+
+    <!-- Footer -->
+    <%- include('./partials/footer.ejs') %>
+    <!-- End of footer -->
+    <script src="/js/drop_down.js"></script>
+    <script>
+        window.onload = () => {
+            let userId = '<%-locals.userId %>'
+            getRequests(userId);
+        }
+
+        function getRequests(userId) {
+            const list = document.querySelector('.requests-list');
+            list.innerHTML = '<p>Retrieving PTO requests...<p>'
+            fetch(`/get-pto-requests/${userId}`)
+                .then((response) => response.json())
+                .then(result => {
+                    if (result.length == 0) {
+                            list.innerHTML = "<p>No PTO requests to display.</p>"
+                        } else {
+                            list.innerHTML = `<tr>
+                                <th>Submitted On</th>
+                                <th>Start Date</th>
+                                <th>End Date</th>
+                                <th>Hrs/Day</th>
+                                <th>Type</th>
+                                <th>Status</th>
+                                <th></th>
+                            </tr>`;
+                            for (var i = 0; i < result.length; i++) {
+                                var request = document.createElement('tr');
+                                // Add data attribute to identify each li
+                                request.setAttribute("id", result[i].id);
+                                // Add styling classes
+                                // log.setAttribute("class", "flex");
+
+                                if (result[i].is_pending) {
+                                    status = `<td class="pending"><img class="status-icon" src="/images/pending.png" alt="three dots">Pending</td>`;
+                                } else if (result[i].status == "Approved") {
+                                    status = `<td class="approved"><img class="status-icon" src="/images/check.png" alt="check icon">${result[i].status}</td>`;
+                                } else if (result[i].status == "Declined") {
+                                    status = `<td class="declined"><img class="status-icon" src="/images/decline.png" alt="decline icon">${result[i].status}</td>`;
+                                }
+                                // Insert HTML
+                                request.innerHTML = `
+                                <td>${result[i].date_created_formatted}</td>
+                                <td>${result[i].start_date.substring(0, 10)}</td>
+                                <td>${result[i].end_date.substring(0, 10)}</td>
+                                <td>${result[i].duration} hrs</td>
+                                <td>${result[i].req_type_name}</td>
+                                ${status}
+                                <td><button class="delete-button" onclick="deleteRequest(event)">X</button></td>
+                                `;
+                                
+                                list.appendChild(request);
+                            };
+                    }
+                })
+        }
+
+        function deleteRequest() {
+            var row = event.srcElement.parentElement.parentElement;
+            row.innerHTML = `<p>Deleting request...</p>`;
+            fetch(`/delete-pto-request/${row.id}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json'
+                        },
+                        // pass POST params
+                        body: JSON.stringify({
+                            id: row.id,
+                        })
+                    })
+                .then((response) => {
+                    if (!response.ok) throw new Error(response.status);
+                    else return response.json();
+                })
+                .then(result => {
+                    row.innerHTML = `<p>Request deleted.</p>`
+                    setTimeout(() => {
+                        row.style.display = "none";
+                    }, 2000)
+                })
+                .catch((err) => {
+                        console.log("Error while deleting request!", err);
+                });
+        }
+    </script>
+</body>
+</html>

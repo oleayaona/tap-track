@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+    <%- include('./partials/head.ejs') %>
+
+<body>
+    <!-- Nav -->
+    <%- include('./partials/nav.ejs') %>
+    <!-- End of nav -->
+
+    <div class="content-container">
+        <main class="main-padding center-align">
+            <div class="manager-main">
+                <div class="border manager-main-div1">
+                    <h2>Pending Requests</h2>
+                    <div class="scrollable-table-container" style="height: 200px">
+                        <table class="pending-requests-list">
+                        
+                        </table>
+                    </div>
+                </div>
+                <div class="border manager-main-div2">
+                    <div class="details-content">
+                        <h2 class="center-align">Request Details</h2>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <h2>All Requests</h2>
+                <div class="scrollable-table-container">
+                    <table class="requests-list">
+
+                    </table>
+                </div>
+            </div>
+        </main>
+
+    </div>
+
+    <!-- Footer -->
+    <%- include('./partials/footer.ejs') %>
+    <!-- End of footer -->
+    <script src="/js/drop_down.js"></script>
+    <script>
+        let logs = [];
+        let pendinglogs = [];
+        
+        window.onload = () => {
+            let userId = '<%-locals.userId %>'
+            getRequests(userId);
+        }
+
+        function getRequests(userId) {
+            const list = document.querySelector('.requests-list');
+            const pendingList = document.querySelector('.pending-requests-list');
+            list.innerHTML = '<p>Retrieving PTO requests...<p>'
+            fetch(`/get-all-pto-requests`)
+                .then((response) => response.json())
+                .then(result => {
+                    logs = result;
+                    if (result.length != 0) {
+                        populateLists(result);
+                    }
+                })
+        }
+
+        function showDetails(event) {
+            req = logs[event.srcElement.parentElement.dataset.index];
+            const container = document.querySelector('.details-content');
+            var duration = (req.duration == 8) ? "Whole Day" : "Half Day";
+            container.innerHTML = `
+                <h2 class="center-align">Request Details</h2>
+                <p><strong>Requested by:</strong> ${req.emp_name}</p>
+                <p><strong>Type:</strong> ${req.req_type_name}</p>
+                <p><strong>Dates:</strong> ${req.start_date.substring(0,10)} to ${req.end_date.substring(0,10)}</p>
+                <p><strong>Hours:</strong> ${duration}</p>
+                <div class="center-align">
+                    <button class="btn btn-primary" onclick="approveRequest(${req.id})">APPROVE</button>
+                    <button class="btn btn-danger" onclick="declineRequest(${req.id})">DECLINE</button>
+                </div>
+            `;
+        }
+
+        function populateLists(result) {
+            const list = document.querySelector('.requests-list');
+            const pendingList = document.querySelector('.pending-requests-list');
+            list.innerHTML = `
+                <thead>
+                    <tr>
+                        <th>Employee</th>
+                        <th>Submitted On</th>
+                        <th>Date/s Covered</th>
+                        <th>Type</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                `;
+            for (var i = 0; i < result.length; i++) {
+                var request = document.createElement('tr');
+                // Add data attribute to identify each li
+                request.setAttribute("id", result[i].id);
+                request.dataset.index = i;
+
+                if (result[i].is_pending) {
+                    status = "Pending";
+                    request.onclick = (event) => {
+                        showDetails(event);
+                    }
+                } else if (result[i].status != "") {
+                    status = result[i].status;
+                }
+                
+                request.innerHTML = `
+                    <td>${result[i].emp_name}</td>
+                    <td>${result[i].date_created_formatted}</td>
+                    <td>${result[i].start_date.substring(0, 10)} thru ${result[i].end_date.substring(0, 10)}</td>
+                    <td>${result[i].req_type_name}</td>
+                    <td>${status}</td>
+                `;
+                
+                list.appendChild(request);
+                if (result[i].is_pending)
+                {
+                    pendinglogs.push(result[i]);
+                    pendingList.appendChild(request);
+                }
+            };
+            if (pendinglogs.length == 0) {
+                pendingList.innerHTML = `<p>No pending requests to display.</p>`;
+            }
+        }
+
+        function approveRequest(reqId) {
+            const container = document.querySelector('.details-content');
+            fetch(`/approve-pto-requests/${reqId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    // pass POST params
+                    body: JSON.stringify({
+                        id: reqId,
+                    })
+                })
+                .then((response) => {
+                    if (!response.ok) throw new Error(response.status);
+                    else return response.json();
+                })
+                .then(result => {
+                    // Success
+                    container.innerHTML = `
+                        <div class="padding center-align">
+                        <img src="/images/blue-check.png" alt="blue check mark" style="width: 50px">
+                        <p>PTO approved!</p>
+                        </div>
+                    `;
+                    let rowId = result[0].id;
+                    let row = document.getElementById(`${rowId}`);
+                    console.log(row)
+                    row.display.visibility = 'none';
+                }).catch((err) => {
+                     console.log("Error while approving PTO request ", err);
+                });
+        }
+
+        function declineRequest(reqId) {
+            const container = document.querySelector('.details-content');
+            fetch(`/decline-pto-requests/${reqId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    // pass POST params
+                    body: JSON.stringify({
+                        id: reqId,
+                    })
+                })
+                .then((response) => {
+                    if (!response.ok) throw new Error(response.status);
+                    else return response.json();
+                })
+                .then(result => {
+                    // Success
+                    container.innerHTML = `
+                        <div class="padding center-align">
+                        <img src="/images/red-x.png" alt="red x mark" style="width: 50px">
+                        <p>PTO declined.</p>
+                        </div>
+                    `;
+                    let rowId = result[0].id;
+                    let row = document.getElementById(`${rowId}`);
+                    console.log(row)
+                    row.style.display = 'none';
+                }).catch((err) => {
+                    console.log("Error while declining PTO request ", err);
+                });
+        }
+    </script>
+</body>
+</html>
